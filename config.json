@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "note": "This file is the single source of content for the site. Edit values here to adapt the copy without touching index.html.",
+    "lastUpdated": "2026-08-19"
+  },
+  "brand": {
+    "name": "SayItRight",
+    "tagline": "The exact message for the conversation you don't want to write yourself.",
+    "primaryColor": "#2563eb",
+    "accentColor": "#0ea5e9",
+    "logoEmoji": "💬"
+  },
+  "business": {
+    "productType": "Message generator for hard conversations (web app)",
+    "oneLiner": "Pick the awkward situation and the tone, and get the exact text ready to copy and send.",
+    "problem": "You know what you want to say —ask for a raise, cancel plans, complain to a noisy neighbor— but not how to word it without sounding aggressive, weak, or awkward.",
+    "solution": "A message generator: pick the situation and the tone (direct, friendly, firm, funny) and get the exact text, ready to copy and paste.",
+    "targetAudience": "People who avoid hard conversations because they don't know how to word them: professionals, roommates, partners, neighbors, clients.",
+    "differentiators": [
+      "Templates for dozens of common awkward situations",
+      "Pick the exact tone: direct, friendly, firm, or funny",
+      "Result ready to copy and paste in seconds",
+      "Try it without creating an account"
+    ]
+  },
+  "offer": {
+    "ctaPrimary": "Join the waitlist",
+    "ctaSecondary": "See example messages",
+    "pricing": [
+      { "name": "Free", "price": "$0/mo", "description": "To try the idea", "features": ["3 messages a month", "Basic tones", "No card required"] },
+      { "name": "Plus", "price": "$5/mo", "description": "For regular use", "features": ["Unlimited messages", "All tones", "Saved history"] },
+      { "name": "Pro", "price": "$9/mo", "description": "For cases with more context", "features": ["Everything in Plus", "Custom context", "Priority support"] }
+    ]
+  },
+  "howItWorks": [
+    { "step": "1. Pick the situation", "description": "Ask for a raise, cancel plans, complain to a neighbor, set a boundary with a client..." },
+    { "step": "2. Pick the tone", "description": "Direct, friendly, firm, or funny — whichever fits you best." },
+    { "step": "3. Copy your message", "description": "Ready to send as-is, or tweak it before you hit send." }
+  ],
+  "scenarios": [
+    "Ask for a raise",
+    "Cancel plans with a friend",
+    "Complain to a noisy neighbor",
+    "Set a boundary with a client",
+    "End a relationship",
+    "Ask a roommate to pay on time"
+  ],
+  "testimonials": [
+    { "quote": "I finally told my neighbor about the noise without us ending up in a fight.", "author": "Test user, example" },
+    { "quote": "I used the firm tone to ask for my raise. I got it.", "author": "Test user, example" }
+  ],
+  "contact": {
+    "email": "hello@sayitright.example"
+  }
+}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SayItRight — Core</title>
+<meta name="description" content="Generate the exact message for a hard conversation." />
+<style>
+  :root{
+    --primary:#2563eb;
+    --accent:#0ea5e9;
+    --ink:#0f172a;
+    --muted:#475569;
+    --bg:#ffffff;
+    --bg-soft:#f8fafc;
+    --border:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--bg-soft);
+    line-height:1.5;
+    min-height:100vh;
+  }
+  a{color:var(--primary);}
+  header.nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--border);
+    background:#fff;
+  }
+  .nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;}
+  .wrap{max-width:720px;margin:0 auto;padding:40px 24px 80px;}
+  h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+  .sub{color:var(--muted);margin-bottom:32px;}
+
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px;}
+  label{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px;}
+  select, textarea, input[type=text]{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);
+    font-size:15px;font-family:inherit;margin-bottom:18px;
+  }
+  textarea{min-height:80px;resize:vertical;}
+  .tone-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .tone-btn{
+    padding:10px 16px;border-radius:999px;border:1px solid var(--border);background:#fff;
+    font-size:14px;cursor:pointer;font-weight:600;color:var(--ink);
+  }
+  .tone-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .btn-primary{
+    background:var(--primary);color:#fff;border:none;border-radius:10px;
+    padding:14px 26px;font-size:16px;font-weight:700;cursor:pointer;width:100%;
+  }
+  .btn-primary:disabled{opacity:.6;cursor:default;}
+
+  #result{display:none;}
+  #result.show{display:block;}
+  .result-meta{font-size:13px;color:var(--muted);margin-bottom:10px;}
+  .result-text{
+    background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;
+    padding:20px;font-size:16px;white-space:pre-wrap;margin-bottom:14px;
+  }
+  .result-actions{display:flex;gap:10px;}
+  .btn-secondary{
+    background:#fff;color:var(--primary);border:1px solid var(--primary);border-radius:8px;
+    padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  #save-status{font-size:12px;color:var(--muted);margin-top:8px;}
+  #custom-fields{display:none;}
+  #custom-fields.show{display:block;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand"><span>💬</span><span>SayItRight</span></div>
+  <a href="/">&larr; Back to home</a>
+</header>
+
+<div class="wrap">
+  <h1>Generate your message</h1>
+  <p class="sub">Pick a situation and a tone. This is the working generative core — every message is assembled at request time, so wording varies between generations.</p>
+
+  <div class="card">
+    <label for="scenario">Situation</label>
+    <select id="scenario"></select>
+
+    <div id="custom-fields">
+      <label for="custom-text">Describe your situation</label>
+      <textarea id="custom-text" placeholder="e.g. I need to tell my landlord the heater is broken and hasn't been fixed in two weeks."></textarea>
+    </div>
+
+    <div id="context-field">
+      <label for="context">Optional detail (fills into the message where relevant)</label>
+      <input type="text" id="context" placeholder="e.g. Friday's dinner, the 3am noise, weekend requests..." />
+    </div>
+
+    <label>Tone</label>
+    <div class="tone-row" id="tone-row"></div>
+
+    <button class="btn-primary" id="generate-btn">Generate message</button>
+  </div>
+
+  <div class="card" id="result">
+    <div class="result-meta" id="result-meta"></div>
+    <div class="result-text" id="result-text"></div>
+    <div class="result-actions">
+      <button class="btn-secondary" id="copy-btn">Copy</button>
+      <button class="btn-secondary" id="regenerate-btn">Regenerate</button>
+    </div>
+    <div id="save-status"></div>
+  </div>
+</div>
+
+<script src="core-engine.js"></script>
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+const { SCENARIOS, TONES, generateMessage } = window.SayItRightCore;
+
+const scenarioSelect = document.getElementById('scenario');
+Object.keys(SCENARIOS).forEach(key => {
+  const opt = document.createElement('option');
+  opt.value = key;
+  opt.textContent = SCENARIOS[key].label;
+  scenarioSelect.appendChild(opt);
+});
+const customOpt = document.createElement('option');
+customOpt.value = 'custom';
+customOpt.textContent = 'Something else (describe it myself)';
+scenarioSelect.appendChild(customOpt);
+
+const customFields = document.getElementById('custom-fields');
+scenarioSelect.addEventListener('change', () => {
+  customFields.classList.toggle('show', scenarioSelect.value === 'custom');
+});
+
+const toneRow = document.getElementById('tone-row');
+let selectedTone = Object.keys(TONES)[0];
+Object.keys(TONES).forEach((key, i) => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tone-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = TONES[key].label;
+  btn.dataset.tone = key;
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTone = key;
+  });
+  toneRow.appendChild(btn);
+});
+
+async function logToSupabase(payload) {
+  const cfg = window.SUPABASE_CONFIG;
+  const statusEl = document.getElementById('save-status');
+  if (!cfg || !cfg.url || cfg.url.includes('YOUR-PROJECT')) {
+    statusEl.textContent = 'Not saved (Supabase not configured yet).';
+    return;
+  }
+  try {
+    const res = await fetch(`${cfg.url}/rest/v1/core_generations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': cfg.anonKey,
+        'Authorization': `Bearer ${cfg.anonKey}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+    statusEl.textContent = res.ok ? 'Saved to Supabase ✓' : 'Could not save (check table/policy).';
+  } catch (e) {
+    statusEl.textContent = 'Could not reach Supabase.';
+  }
+}
+
+function runGenerate() {
+  const scenarioKey = scenarioSelect.value;
+  const customText = document.getElementById('custom-text').value;
+  const context = document.getElementById('context').value;
+
+  const { message, scenarioLabel, toneLabel } = generateMessage({
+    scenarioKey, customText, context, toneKey: selectedTone
+  });
+
+  document.getElementById('result-meta').textContent = `${scenarioLabel} · ${toneLabel} tone`;
+  document.getElementById('result-text').textContent = message;
+  document.getElementById('result').classList.add('show');
+  document.getElementById('save-status').textContent = 'Saving...';
+
+  logToSupabase({
+    scenario: scenarioLabel,
+    tone: toneLabel,
+    context: context || null,
+    message
+  });
+}
+
+document.getElementById('generate-btn').addEventListener('click', runGenerate);
+document.getElementById('regenerate-btn').addEventListener('click', runGenerate);
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('result-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+});
+})();
+</script>
+
+</body>
+</html>

@@ -47,7 +47,9 @@
     font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);
   }
   .poll-btn:hover{border-color:var(--primary);}
+  .poll-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
   .poll-btn.selected{border-color:var(--primary);background:#eff6ff;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   #poll-note{
     width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);
     font-size:14px;font-family:inherit;margin-bottom:14px;display:none;
@@ -104,11 +106,11 @@
   <div class="card">
     <h2>1. Live problem validation</h2>
     <p class="poll-question">Have you ever struggled to find the right words for a hard conversation (asking for a raise, cancelling plans, setting a boundary, complaining to a neighbor)?</p>
-    <div class="poll-buttons">
-      <button class="poll-btn" id="btn-yes" type="button">Yes, often</button>
-      <button class="poll-btn" id="btn-no" type="button">No, not really</button>
+    <div class="poll-buttons" role="group" aria-label="Have you struggled to word a hard message?">
+      <button class="poll-btn" id="btn-yes" type="button" aria-pressed="false">Yes, often</button>
+      <button class="poll-btn" id="btn-no" type="button" aria-pressed="false">No, not really</button>
     </div>
-    <input type="text" id="poll-note" placeholder="Optional: what made it hard? (e.g. 'sounding too harsh')" />
+    <input type="text" id="poll-note" placeholder="Optional: what made it hard? (e.g. 'sounding too harsh')" aria-label="Optional detail about what made it hard" />
     <button class="btn-primary" id="poll-submit" disabled>Submit response</button>
     <div id="poll-status"></div>
 
@@ -130,6 +132,7 @@
   <div class="card">
     <h2>2. Competitive landscape</h2>
     <p class="sub" style="margin-bottom:16px;">Nobody occupies the exact niche of "instant, free, no-signup, tone-specific message wording" — but several adjacent categories compete for the same underlying need.</p>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -190,6 +193,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
     <footer class="src">Sources: <a href="https://www.grammarly.com/tone" target="_blank" rel="noopener">Grammarly Tone</a>, <a href="https://www.vocalimage.app/en/articles/37-practice-difficult-conversations-ai-apps/" target="_blank" rel="noopener">Vocal Image — apps to practice difficult conversations</a>.</footer>
   </div>
 
@@ -228,6 +232,8 @@
     selected = val;
     btnYes.classList.toggle('selected', val === true);
     btnNo.classList.toggle('selected', val === false);
+    btnYes.setAttribute('aria-pressed', String(val === true));
+    btnNo.setAttribute('aria-pressed', String(val === false));
     noteInput.style.display = 'block';
     submitBtn.disabled = false;
   }

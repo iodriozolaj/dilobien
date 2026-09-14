@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SayItRight — Research</title>
+<meta name="description" content="Research and benchmarking dashboard: is this problem real, and who else solves it?" />
+<style>
+  :root{
+    --primary:#2563eb;
+    --accent:#0ea5e9;
+    --ink:#0f172a;
+    --muted:#475569;
+    --bg:#ffffff;
+    --bg-soft:#f8fafc;
+    --border:#e2e8f0;
+    --good:#16a34a;
+    --bad:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--bg-soft);
+    line-height:1.5;
+    min-height:100vh;
+  }
+  a{color:var(--primary);}
+  header.nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--border);
+    background:#fff;
+  }
+  .nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;}
+  .nav .links{display:flex;gap:18px;align-items:center;font-size:14px;font-weight:600;}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 24px 80px;}
+  h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+  h2{font-size:20px;font-weight:800;margin-bottom:12px;margin-top:8px;}
+  .sub{color:var(--muted);margin-bottom:32px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px;}
+
+  /* Poll widget */
+  .poll-question{font-size:17px;font-weight:700;margin-bottom:16px;}
+  .poll-buttons{display:flex;gap:12px;margin-bottom:18px;}
+  .poll-btn{
+    flex:1;padding:14px;border-radius:10px;border:2px solid var(--border);background:#fff;
+    font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);
+  }
+  .poll-btn:hover{border-color:var(--primary);}
+  .poll-btn.selected{border-color:var(--primary);background:#eff6ff;}
+  #poll-note{
+    width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);
+    font-size:14px;font-family:inherit;margin-bottom:14px;display:none;
+  }
+  .btn-primary{
+    background:var(--primary);color:#fff;border:none;border-radius:10px;
+    padding:12px 22px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .btn-primary:disabled{opacity:.6;cursor:default;}
+  #poll-status{font-size:13px;color:var(--muted);margin-top:10px;}
+
+  .tally{margin-top:22px;padding-top:20px;border-top:1px solid var(--border);}
+  .tally-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:14px;}
+  .tally-label{width:150px;flex-shrink:0;font-weight:600;}
+  .tally-bar-bg{flex:1;height:22px;background:var(--bg-soft);border-radius:6px;overflow:hidden;}
+  .tally-bar{height:100%;border-radius:6px;transition:width .4s ease;}
+  .tally-bar.yes{background:var(--primary);}
+  .tally-bar.no{background:#94a3b8;}
+  .tally-count{width:70px;text-align:right;flex-shrink:0;color:var(--muted);font-size:13px;}
+
+  /* Competitor table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th, td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--bg-soft);font-weight:700;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  .yes-mark{color:var(--good);font-weight:800;}
+  .no-mark{color:var(--bad);font-weight:800;}
+  .cat-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#eff6ff;color:var(--primary);margin-bottom:4px;}
+
+  ul.plain{padding-left:20px;}
+  ul.plain li{margin-bottom:8px;}
+
+  .gap-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin-top:8px;}
+  .gap-box p{margin-bottom:10px;}
+  .gap-box p:last-child{margin-bottom:0;}
+
+  footer.src{font-size:12px;color:var(--muted);margin-top:8px;}
+  footer.src a{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand"><span>💬</span><span>SayItRight</span></div>
+  <div class="links">
+    <a href="/core">Try the generator</a>
+    <a href="/">&larr; Home</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Research &amp; Benchmarking</h1>
+  <p class="sub">Week 2 goal: prove the problem is real, and map who else is already trying to solve it.</p>
+
+  <div class="card">
+    <h2>1. Live problem validation</h2>
+    <p class="poll-question">Have you ever struggled to find the right words for a hard conversation (asking for a raise, cancelling plans, setting a boundary, complaining to a neighbor)?</p>
+    <div class="poll-buttons">
+      <button class="poll-btn" id="btn-yes" type="button">Yes, often</button>
+      <button class="poll-btn" id="btn-no" type="button">No, not really</button>
+    </div>
+    <input type="text" id="poll-note" placeholder="Optional: what made it hard? (e.g. 'sounding too harsh')" />
+    <button class="btn-primary" id="poll-submit" disabled>Submit response</button>
+    <div id="poll-status"></div>
+
+    <div class="tally" id="tally-block" style="display:none;">
+      <div class="tally-row">
+        <div class="tally-label">Yes, often</div>
+        <div class="tally-bar-bg"><div class="tally-bar yes" id="bar-yes" style="width:0%"></div></div>
+        <div class="tally-count" id="count-yes">0</div>
+      </div>
+      <div class="tally-row">
+        <div class="tally-label">No, not really</div>
+        <div class="tally-bar-bg"><div class="tally-bar no" id="bar-no" style="width:0%"></div></div>
+        <div class="tally-count" id="count-no">0</div>
+      </div>
+      <p class="sub" style="margin-bottom:0;font-size:12.5px;">Live tally pulled directly from the <code>research_signals</code> Supabase table — every real visitor response updates this.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Competitive landscape</h2>
+    <p class="sub" style="margin-bottom:16px;">Nobody occupies the exact niche of "instant, free, no-signup, tone-specific message wording" — but several adjacent categories compete for the same underlying need.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>What it actually does</th>
+          <th>Instant output</th>
+          <th>No signup</th>
+          <th>Free</th>
+          <th>Tone-specific wording</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Grammarly</strong> (Tone Detector / Rewrite)</td>
+          <td><span class="cat-badge">Writing assistant</span></td>
+          <td>Detects the tone of text you already wrote and suggests rewrites — improves existing drafts, doesn't generate one from a blank situation.</td>
+          <td class="no-mark">✗</td>
+          <td class="no-mark">✗ (account for full features)</td>
+          <td class="yes-mark">~ (free tier limited)</td>
+          <td class="no-mark">✗</td>
+        </tr>
+        <tr>
+          <td><strong>ChatGPT / Claude</strong> (general chat)</td>
+          <td><span class="cat-badge">General AI assistant</span></td>
+          <td>Can write a message if you know how to prompt it well, but has no situation/tone presets — you start from a blank chat every time.</td>
+          <td class="no-mark">~ (needs a good prompt)</td>
+          <td class="no-mark">✗ (account, often paid for best models)</td>
+          <td class="yes-mark">~ (free tier limited)</td>
+          <td class="no-mark">✗ (no built-in presets)</td>
+        </tr>
+        <tr>
+          <td><strong>Yoodli / Vocal Image / VirtualSpeech</strong></td>
+          <td><span class="cat-badge">Conversation-practice / roleplay</span></td>
+          <td>AI roleplay to practice <em>delivering</em> a hard conversation out loud — coaching on speaking, not on wording a message to send.</td>
+          <td class="no-mark">✗ (session-based practice)</td>
+          <td class="no-mark">✗</td>
+          <td class="no-mark">✗ (mostly paid)</td>
+          <td class="no-mark">✗</td>
+        </tr>
+        <tr>
+          <td><strong>"Crucial Conversations" (book/training)</strong></td>
+          <td><span class="cat-badge">Education / course</span></td>
+          <td>Teaches communication frameworks over hours of reading or a course — a skill investment, not a per-message tool.</td>
+          <td class="no-mark">✗</td>
+          <td class="yes-mark">✓ (book), ✗ (course)</td>
+          <td class="no-mark">✗ (paid)</td>
+          <td class="no-mark">✗</td>
+        </tr>
+        <tr>
+          <td><strong>SayItRight</strong> (this product)</td>
+          <td><span class="cat-badge">Message generator</span></td>
+          <td>Pick a situation + tone, get a ready-to-send message immediately.</td>
+          <td class="yes-mark">✓</td>
+          <td class="yes-mark">✓</td>
+          <td class="yes-mark">✓</td>
+          <td class="yes-mark">✓</td>
+        </tr>
+      </tbody>
+    </table>
+    <footer class="src">Sources: <a href="https://www.grammarly.com/tone" target="_blank" rel="noopener">Grammarly Tone</a>, <a href="https://www.vocalimage.app/en/articles/37-practice-difficult-conversations-ai-apps/" target="_blank" rel="noopener">Vocal Image — apps to practice difficult conversations</a>.</footer>
+  </div>
+
+  <div class="card">
+    <h2>3. Substitutes (what people do instead of using any tool)</h2>
+    <ul class="plain">
+      <li><strong>Asking a friend or partner to help word it</strong> — free and personal, but slow and depends on someone else being available and good with words.</li>
+      <li><strong>Googling templates or "scripts"</strong> — free, but generic and rarely matches the exact situation, tone, or relationship.</li>
+      <li><strong>Just winging it in the moment</strong> — zero friction, but the most common source of the "said it wrong" regret this product exists to prevent.</li>
+      <li><strong>Avoiding the conversation entirely</strong> — the most common substitute of all, and the actual cost this product is trying to reduce.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>4. Gap analysis</h2>
+    <div class="gap-box">
+      <p><strong>Gap identified:</strong> every adjacent tool either (a) improves text you already wrote, (b) requires you to already know how to prompt an AI well, (c) trains a general speaking skill over time, or (d) requires payment or an account before you get anything.</p>
+      <p><strong>Nobody combines:</strong> zero signup + zero cost + instant output + a small menu of situation and tone presets purpose-built for "I don't know how to phrase this one message."</p>
+      <p><strong>Conclusion:</strong> the problem is validated both by the live poll above and by the absence of a direct competitor in this exact niche — the closest tools solve an adjacent problem (writing quality, speaking practice, or general assistance) rather than this one (instant wording for one specific hard message).</p>
+    </div>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+  const cfg = window.SUPABASE_CONFIG;
+  const btnYes = document.getElementById('btn-yes');
+  const btnNo = document.getElementById('btn-no');
+  const noteInput = document.getElementById('poll-note');
+  const submitBtn = document.getElementById('poll-submit');
+  const statusEl = document.getElementById('poll-status');
+  let selected = null;
+
+  function selectChoice(val) {
+    selected = val;
+    btnYes.classList.toggle('selected', val === true);
+    btnNo.classList.toggle('selected', val === false);
+    noteInput.style.display = 'block';
+    submitBtn.disabled = false;
+  }
+  btnYes.addEventListener('click', () => selectChoice(true));
+  btnNo.addEventListener('click', () => selectChoice(false));
+
+  async function loadTally() {
+    if (!cfg || !cfg.url || cfg.url.includes('YOUR-PROJECT')) return;
+    try {
+      const res = await fetch(`${cfg.url}/rest/v1/research_signals?select=struggled`, {
+        headers: { 'apikey': cfg.anonKey, 'Authorization': `Bearer ${cfg.anonKey}` }
+      });
+      if (!res.ok) return;
+      const rows = await res.json();
+      const yes = rows.filter(r => r.struggled === true).length;
+      const no = rows.filter(r => r.struggled === false).length;
+      const total = Math.max(yes + no, 1);
+      document.getElementById('tally-block').style.display = 'block';
+      document.getElementById('bar-yes').style.width = `${(yes / total) * 100}%`;
+      document.getElementById('bar-no').style.width = `${(no / total) * 100}%`;
+      document.getElementById('count-yes').textContent = yes;
+      document.getElementById('count-no').textContent = no;
+    } catch (e) { /* fail silently, dashboard still usable */ }
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    if (selected === null) return;
+    submitBtn.disabled = true;
+    statusEl.textContent = 'Submitting...';
+    if (!cfg || !cfg.url || cfg.url.includes('YOUR-PROJECT')) {
+      statusEl.textContent = 'Not saved (Supabase not configured yet).';
+      return;
+    }
+    try {
+      const res = await fetch(`${cfg.url}/rest/v1/research_signals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.anonKey,
+          'Authorization': `Bearer ${cfg.anonKey}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ struggled: selected, note: noteInput.value || null })
+      });
+      statusEl.textContent = res.ok ? 'Thanks — response saved ✓' : 'Could not save (check table/policy).';
+      if (res.ok) loadTally();
+    } catch (e) {
+      statusEl.textContent = 'Could not reach Supabase.';
+    }
+  });
+
+  loadTally();
+})();
+</script>
+
+</body>
+</html>

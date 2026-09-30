@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SayItRight — Product</title>
+<meta name="description" content="Product architecture: tiers, features, and how plan-gating works." />
+<style>
+  :root{
+    --primary:#2563eb; --accent:#0ea5e9; --ink:#0f172a; --muted:#475569;
+    --bg-soft:#f8fafc; --border:#e2e8f0; --good:#16a34a; --bad:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg-soft);line-height:1.5;}
+  a{color:var(--primary);}
+  header.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:#fff;flex-wrap:wrap;gap:10px;}
+  .nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;}
+  .nav .links{display:flex;gap:16px;align-items:center;font-size:14px;font-weight:600;flex-wrap:wrap;}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 24px 80px;}
+  h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+  h2{font-size:20px;font-weight:800;margin-bottom:12px;margin-top:8px;}
+  .sub{color:var(--muted);margin-bottom:32px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+  th, td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--bg-soft);font-weight:700;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  td.center, th.center{text-align:center;}
+  .yes-mark{color:var(--good);font-weight:800;}
+  .no-mark{color:var(--bad);font-weight:800;}
+  .tier-badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;}
+  .tier-free{background:#f1f5f9;color:#475569;}
+  .tier-plus{background:#eff6ff;color:#2563eb;}
+  .tier-pro{background:#fdf4ff;color:#a21caf;}
+  ul.plain{padding-left:20px;}
+  ul.plain li{margin-bottom:8px;}
+  .arch-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;}
+  .arch-box p{margin-bottom:10px;}
+  .arch-box p:last-child{margin-bottom:0;}
+  .cta{display:inline-block;margin-top:6px;background:var(--primary);color:#fff;padding:12px 22px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand"><span>💬</span><span>SayItRight</span></div>
+  <div class="links">
+    <a href="/core">Generator</a>
+    <a href="/research">Research</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/">&larr; Home</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Product Architecture</h1>
+  <p class="sub">How SayItRight breaks into tiers — what's free, what's paid, and why each feature sits where it does.</p>
+
+  <div class="card">
+    <h2>Tiers at a glance</h2>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="center"><span class="tier-badge tier-free">Free — $0</span></th>
+          <th class="center"><span class="tier-badge tier-plus">Plus — $4.99/mo</span></th>
+          <th class="center"><span class="tier-badge tier-pro">Pro — $12.99/mo</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Message generations</td>
+          <td class="center">5 / day</td>
+          <td class="center">Unlimited</td>
+          <td class="center">Unlimited</td>
+        </tr>
+        <tr>
+          <td>Tone options (Direct, Friendly, Firm, Funny)</td>
+          <td class="center yes-mark">✓</td>
+          <td class="center yes-mark">✓</td>
+          <td class="center yes-mark">✓</td>
+        </tr>
+        <tr>
+          <td>Save / download message history</td>
+          <td class="center no-mark">✗</td>
+          <td class="center yes-mark">✓</td>
+          <td class="center yes-mark">✓</td>
+        </tr>
+        <tr>
+          <td>Custom tone profiles (save your own opener/closer style)</td>
+          <td class="center no-mark">✗</td>
+          <td class="center no-mark">✗</td>
+          <td class="center yes-mark">✓</td>
+        </tr>
+        <tr>
+          <td>Usage analytics (messages by situation/tone, for coaches managing several clients)</td>
+          <td class="center no-mark">✗</td>
+          <td class="center no-mark">✗</td>
+          <td class="center yes-mark">✓</td>
+        </tr>
+        <tr>
+          <td>Priority support</td>
+          <td class="center no-mark">✗</td>
+          <td class="center no-mark">✗</td>
+          <td class="center yes-mark">✓</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="sub" style="margin:16px 0 0;">Free covers the entire validated core loop from Week 1 at no cost — the paid tiers monetize volume and persistence, not the core idea itself.</p>
+    <a class="cta" href="/pricing">Try the pricing &amp; revenue simulator &rarr;</a>
+  </div>
+
+  <div class="card">
+    <h2>Why this split</h2>
+    <ul class="plain">
+      <li><strong>Free stays genuinely useful.</strong> 5 generations/day is enough to solve an occasional hard conversation — the product's core promise from Week 1 isn't paywalled, which matters given Week 2's research showed people want this specifically because it removes friction, not adds it.</li>
+      <li><strong>Plus targets frequency, not features.</strong> Someone who hits the daily cap regularly (a manager writing many hard messages) is the clearest signal of willingness to pay — so Plus removes the cap and adds history, rather than hiding tones or quality behind a paywall.</li>
+      <li><strong>Pro targets a different user, not "more of the same."</strong> Custom tone profiles and analytics serve coaches/freelancers managing this on behalf of multiple people — a distinct job-to-be-done from an individual occasionally wording one hard message.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Architecture: how plan-gating works (this week's scope)</h2>
+    <div class="arch-box">
+      <p><strong>This week ships the pricing model and the interactive simulator, not full billing.</strong> There is no user login or payment processor yet — /pricing lets anyone calculate which plan fits their usage and simulate revenue at hypothetical user counts, but selecting "Plus" or "Pro" there does not actually unlock anything on /core today.</p>
+      <p><strong>Why:</strong> building real auth + Stripe billing before validating that the tier boundaries and prices make sense (this week's job) would risk wiring payment infrastructure around numbers that might change. The simulator is the cheap way to pressure-test the pricing model before investing in billing.</p>
+      <p><strong>Planned real gating (future week):</strong> a `plan` column on a `users` table (Supabase Auth + Postgres), checked client-side on page load to show/hide the history and custom-tone-profile UI, enforced server-side via a Postgres function or edge function before any gated write — not by trusting the client.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

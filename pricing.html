@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SayItRight — Pricing</title>
+<meta name="description" content="Pick the plan that fits you, and simulate projected revenue across tiers." />
+<style>
+  :root{
+    --primary:#2563eb; --accent:#0ea5e9; --ink:#0f172a; --muted:#475569;
+    --bg-soft:#f8fafc; --border:#e2e8f0; --good:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg-soft);line-height:1.5;}
+  a{color:var(--primary);}
+  header.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:#fff;flex-wrap:wrap;gap:10px;}
+  .nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;}
+  .nav .links{display:flex;gap:16px;align-items:center;font-size:14px;font-weight:600;flex-wrap:wrap;}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 24px 80px;}
+  h1{font-size:28px;font-weight:800;margin-bottom:8px;}
+  h2{font-size:20px;font-weight:800;margin-bottom:12px;}
+  .sub{color:var(--muted);margin-bottom:32px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px;}
+
+  label{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px;}
+  input[type=number], input[type=range]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);font-size:15px;font-family:inherit;margin-bottom:18px;}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:620px){.row3{grid-template-columns:1fr;}}
+
+  .result-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:6px;}
+  .result-box .big{font-size:26px;font-weight:800;color:var(--primary);}
+  .result-box .tier-name{font-weight:800;}
+  .result-box .price{color:var(--muted);}
+
+  .tier-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px;}
+  @media (max-width:700px){.tier-cards{grid-template-columns:1fr;}}
+  .tier-card{border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+  .tier-card.active{border-color:var(--primary);background:#eff6ff;}
+  .tier-card .name{font-weight:800;font-size:15px;margin-bottom:4px;}
+  .tier-card .price{color:var(--muted);font-size:13px;}
+
+  .bars{margin-top:20px;}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13.5px;}
+  .bar-label{width:80px;flex-shrink:0;font-weight:700;}
+  .bar-bg{flex:1;height:22px;background:var(--bg-soft);border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;transition:width .3s ease;}
+  .bar-fill.plus{background:var(--primary);}
+  .bar-fill.pro{background:#a21caf;}
+  .bar-value{width:100px;text-align:right;flex-shrink:0;color:var(--muted);font-size:12.5px;}
+
+  #status-recommend, #status-revenue{font-size:12px;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand"><span>💬</span><span>SayItRight</span></div>
+  <div class="links">
+    <a href="/core">Generator</a>
+    <a href="/research">Research</a>
+    <a href="/product">Product</a>
+    <a href="/">&larr; Home</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Pricing &amp; Revenue Simulator</h1>
+  <p class="sub">Two real calculators, not a static price list: find your plan, and project revenue from hypothetical user counts.</p>
+
+  <div class="card">
+    <h2>1. Which plan fits you?</h2>
+    <label for="messages-input">How many hard messages do you expect to generate per month?</label>
+    <input type="number" id="messages-input" min="0" step="1" value="20" />
+    <div class="result-box" id="recommend-result">
+      <div>Recommended plan: <span class="tier-name" id="rec-tier-name">Free</span></div>
+      <div class="big" id="rec-price">$0 / month</div>
+      <div id="rec-reason" class="sub" style="margin:8px 0 0;font-size:13px;"></div>
+    </div>
+    <div id="status-recommend"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Plans</h2>
+    <div class="tier-cards" id="tier-cards">
+      <div class="tier-card" data-tier="free">
+        <div class="name">Free</div>
+        <div class="price">$0/mo — 5 generations/day</div>
+      </div>
+      <div class="tier-card" data-tier="plus">
+        <div class="name">Plus</div>
+        <div class="price">$4.99/mo — unlimited + history</div>
+      </div>
+      <div class="tier-card" data-tier="pro">
+        <div class="name">Pro</div>
+        <div class="price">$12.99/mo — + custom tones + analytics</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. Revenue simulator</h2>
+    <p class="sub" style="margin-bottom:16px;">Plug in a hypothetical user base across tiers and see projected recurring revenue (Free users contribute $0).</p>
+    <div class="row3">
+      <div>
+        <label for="free-users">Free users</label>
+        <input type="number" id="free-users" min="0" step="1" value="500" />
+      </div>
+      <div>
+        <label for="plus-users">Plus users ($4.99/mo)</label>
+        <input type="number" id="plus-users" min="0" step="1" value="40" />
+      </div>
+      <div>
+        <label for="pro-users">Pro users ($12.99/mo)</label>
+        <input type="number" id="pro-users" min="0" step="1" value="8" />
+      </div>
+    </div>
+    <div class="result-box">
+      <div>Monthly Recurring Revenue (MRR)</div>
+      <div class="big" id="mrr-value">$0.00</div>
+      <div class="sub" style="margin:4px 0 14px;font-size:13px;">Annual Run Rate (ARR): <strong id="arr-value">$0.00</strong></div>
+      <div class="bars">
+        <div class="bar-row">
+          <div class="bar-label">Plus</div>
+          <div class="bar-bg"><div class="bar-fill plus" id="bar-plus" style="width:0%"></div></div>
+          <div class="bar-value" id="bar-plus-value">$0.00</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Pro</div>
+          <div class="bar-bg"><div class="bar-fill pro" id="bar-pro" style="width:0%"></div></div>
+          <div class="bar-value" id="bar-pro-value">$0.00</div>
+        </div>
+      </div>
+    </div>
+    <div id="status-revenue"></div>
+  </div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+  const PLANS = {
+    free: { label: 'Free', price: 0, capPerMonth: 150 },
+    plus: { label: 'Plus', price: 4.99, capPerMonth: 999 },
+    pro:  { label: 'Pro',  price: 12.99, capPerMonth: Infinity }
+  };
+
+  // Exposed for testing (see Test Plan section of the evidence packet)
+  function recommendTier(messagesPerMonth) {
+    if (messagesPerMonth <= PLANS.free.capPerMonth) return 'free';
+    if (messagesPerMonth <= PLANS.plus.capPerMonth) return 'plus';
+    return 'pro';
+  }
+  function computeMRR(freeUsers, plusUsers, proUsers) {
+    return (plusUsers * PLANS.plus.price) + (proUsers * PLANS.pro.price);
+  }
+  window.PricingLogic = { PLANS, recommendTier, computeMRR };
+
+  const cfg = window.SUPABASE_CONFIG;
+  async function logSignal(payload) {
+    if (!cfg || !cfg.url || cfg.url.includes('YOUR-PROJECT')) return 'not-configured';
+    try {
+      const res = await fetch(`${cfg.url}/rest/v1/pricing_signals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': cfg.anonKey,
+          'Authorization': `Bearer ${cfg.anonKey}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+      return res.ok ? 'ok' : 'save-failed';
+    } catch (e) { return 'unreachable'; }
+  }
+
+  // --- 1. Plan recommendation ---
+  const messagesInput = document.getElementById('messages-input');
+  const recTierName = document.getElementById('rec-tier-name');
+  const recPrice = document.getElementById('rec-price');
+  const recReason = document.getElementById('rec-reason');
+  const statusRecommend = document.getElementById('status-recommend');
+  const tierCards = document.querySelectorAll('.tier-card');
+
+  let recommendDebounce = null;
+  function updateRecommendation() {
+    const n = Math.max(0, parseInt(messagesInput.value, 10) || 0);
+    const tierKey = PricingLogic.recommendTier(n);
+    const tier = PricingLogic.PLANS[tierKey];
+    recTierName.textContent = tier.label;
+    recPrice.textContent = tier.price === 0 ? '$0 / month' : `$${tier.price.toFixed(2)} / month`;
+    recReason.textContent = tierKey === 'free'
+      ? `${n} messages/month fits inside the Free daily cap (~150/month).`
+      : tierKey === 'plus'
+        ? `${n} messages/month goes past Free's cap — Plus removes the limit entirely.`
+        : `${n} messages/month is heavy, high-volume usage — Pro adds tools built for that (custom tone profiles, analytics).`;
+    tierCards.forEach(c => c.classList.toggle('active', c.dataset.tier === tierKey));
+
+    clearTimeout(recommendDebounce);
+    recommendDebounce = setTimeout(async () => {
+      const status = await logSignal({ kind: 'plan_recommendation', messages_per_month: n, recommended_tier: tierKey });
+      statusRecommend.textContent = status === 'ok' ? 'Logged ✓' : status === 'not-configured' ? '' : 'Not saved (offline).';
+    }, 600);
+  }
+  messagesInput.addEventListener('input', updateRecommendation);
+
+  // --- 2. Revenue simulator ---
+  const freeUsersInput = document.getElementById('free-users');
+  const plusUsersInput = document.getElementById('plus-users');
+  const proUsersInput = document.getElementById('pro-users');
+  const mrrValue = document.getElementById('mrr-value');
+  const arrValue = document.getElementById('arr-value');
+  const barPlus = document.getElementById('bar-plus');
+  const barPro = document.getElementById('bar-pro');
+  const barPlusValue = document.getElementById('bar-plus-value');
+  const barProValue = document.getElementById('bar-pro-value');
+  const statusRevenue = document.getElementById('status-revenue');
+
+  let revenueDebounce = null;
+  function updateRevenue() {
+    const freeUsers = Math.max(0, parseInt(freeUsersInput.value, 10) || 0);
+    const plusUsers = Math.max(0, parseInt(plusUsersInput.value, 10) || 0);
+    const proUsers = Math.max(0, parseInt(proUsersInput.value, 10) || 0);
+
+    const plusRevenue = plusUsers * PricingLogic.PLANS.plus.price;
+    const proRevenue = proUsers * PricingLogic.PLANS.pro.price;
+    const mrr = PricingLogic.computeMRR(freeUsers, plusUsers, proUsers);
+    const arr = mrr * 12;
+    const maxRevenue = Math.max(plusRevenue, proRevenue, 1);
+
+    mrrValue.textContent = `$${mrr.toFixed(2)}`;
+    arrValue.textContent = `$${arr.toFixed(2)}`;
+    barPlus.style.width = `${(plusRevenue / maxRevenue) * 100}%`;
+    barPro.style.width = `${(proRevenue / maxRevenue) * 100}%`;
+    barPlusValue.textContent = `$${plusRevenue.toFixed(2)}`;
+    barProValue.textContent = `$${proRevenue.toFixed(2)}`;
+
+    clearTimeout(revenueDebounce);
+    revenueDebounce = setTimeout(async () => {
+      const status = await logSignal({ kind: 'revenue_projection', free_users: freeUsers, plus_users: plusUsers, pro_users: proUsers, mrr });
+      statusRevenue.textContent = status === 'ok' ? 'Logged ✓' : status === 'not-configured' ? '' : 'Not saved (offline).';
+    }, 600);
+  }
+  [freeUsersInput, plusUsersInput, proUsersInput].forEach(el => el.addEventListener('input', updateRevenue));
+
+  updateRecommendation();
+  updateRevenue();
+})();
+</script>
+
+</body>
+</html>

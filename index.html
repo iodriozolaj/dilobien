@@ -95,6 +95,13 @@
 
   footer{padding:40px 24px;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--border);}
 
+  .proof-strip{background:var(--bg-soft);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 24px;}
+  .proof-strip .wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;text-align:center;}
+  .proof-item .num{font-size:22px;font-weight:800;color:var(--primary);}
+  .proof-item .label{font-size:12px;color:var(--muted);margin-top:2px;}
+  .proof-strip .proof-link{font-size:13px;margin-top:10px;display:block;}
+  .proof-strip .proof-link a{color:var(--primary);font-weight:700;}
+
   @media (max-width:720px){
     .problem-solution,.steps,.pricing,.testimonials{grid-template-columns:1fr;}
   }
@@ -109,6 +116,7 @@
     <a href="/research" style="font-size:14px;font-weight:600;color:var(--ink);">Research</a>
     <a href="/product" style="font-size:14px;font-weight:600;color:var(--ink);">Product</a>
     <a href="/pricing" style="font-size:14px;font-weight:600;color:var(--ink);">Pricing</a>
+    <a href="/marketing" style="font-size:14px;font-weight:600;color:var(--ink);">Marketing</a>
     <button id="nav-cta">Join the waitlist</button>
   </div>
 </header>
@@ -122,6 +130,15 @@
       <button class="btn-secondary" id="cta-secondary">See example messages</button>
     </div>
   </div>
+</section>
+
+<section class="proof-strip">
+  <div class="wrap">
+    <div class="proof-item"><div class="num" id="proof-validated">—</div><div class="label">people confirmed this is a real problem</div></div>
+    <div class="proof-item"><div class="num" id="proof-messages">—</div><div class="label">pricing simulations run by visitors</div></div>
+    <div class="proof-item"><div class="num" id="proof-waitlist">—</div><div class="label">marketing page visits tracked live</div></div>
+  </div>
+  <p class="proof-link"><a href="/marketing">See how these numbers are measured &rarr;</a></p>
 </section>
 
 <section>
@@ -182,7 +199,54 @@
   <p style="margin-top:6px;font-size:12px;">Content editable in config.json</p>
 </footer>
 
+<script src="/supabase-config.js"></script>
+<script src="/marketing-engine.js"></script>
 <script>
+const SB = window.SUPABASE_CONFIG;
+let CTA_VARIANT = "a";
+const CTA_COPY = { a: "Join the waitlist", b: "Get early access" };
+
+async function logMarketingSignal(testName, variant, eventType) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    await fetch(SB.url + "/rest/v1/marketing_signals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey },
+      body: JSON.stringify({ test_name: testName, variant: variant, event_type: eventType, page: "/" }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function getLiveCount(table, filter) {
+  try {
+    const url = SB.url + "/rest/v1/" + table + "?select=id" + (filter ? "&" + filter : "") + "&limit=1";
+    const res = await fetch(url, { headers: { apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey, Prefer: "count=exact" } });
+    const range = res.headers.get("content-range");
+    if (!range) return null;
+    const total = range.split("/")[1];
+    return total === "*" ? null : parseInt(total, 10);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function loadProofStrip() {
+  const [validated, pricingRuns, marketingVisits] = await Promise.all([
+    getLiveCount("research_signals", "struggled=eq.true"),
+    getLiveCount("pricing_signals"),
+    getLiveCount("marketing_signals", "event_type=eq.impression"),
+  ]);
+  document.getElementById("proof-validated").textContent = validated ?? "—";
+  document.getElementById("proof-messages").textContent = pricingRuns ?? "—";
+  document.getElementById("proof-waitlist").textContent = marketingVisits ?? "—";
+}
+
 async function init(){
   const res = await fetch('config.json');
   const cfg = await res.json();
@@ -196,9 +260,16 @@ async function init(){
 
   document.getElementById('hero-tagline').textContent = cfg.brand.tagline;
   document.getElementById('hero-oneliner').textContent = cfg.business.oneLiner;
-  document.getElementById('nav-cta').textContent = cfg.offer.ctaPrimary;
-  document.getElementById('cta-primary').textContent = cfg.offer.ctaPrimary;
   document.getElementById('cta-secondary').textContent = cfg.offer.ctaSecondary;
+
+  // A/B Test 2: CTA copy ("Join the waitlist" vs "Get early access").
+  // Overrides config.json's default so the test actually varies what visitors see.
+  CTA_VARIANT = window.MarketingEngine.getOrAssignVariant('homepage_cta');
+  const ctaText = CTA_COPY[CTA_VARIANT];
+  document.getElementById('nav-cta').textContent = ctaText;
+  document.getElementById('cta-primary').textContent = ctaText;
+  logMarketingSignal('homepage_cta', CTA_VARIANT, 'impression');
+  loadProofStrip();
 
   document.getElementById('problem-text').textContent = cfg.business.problem;
   document.getElementById('solution-text').textContent = cfg.business.solution;
@@ -261,16 +332,39 @@ async function init(){
   });
 }
 
-// El formulario guarda el email en localStorage como demo.
-// Para guardarlo de verdad (base de datos real), este sitio necesitaría
-// conectarse a un backend como Supabase — ver el proyecto Next.js completo.
-document.getElementById('waitlist-form').addEventListener('submit', (e) => {
+// Week 4: the waitlist now writes to a real Supabase table (waitlist_signups)
+// instead of only localStorage. If Supabase can't be reached, it still saves
+// to localStorage as a fallback so the visitor never sees a broken form —
+// same graceful-degradation pattern used on /pricing.
+document.getElementById('waitlist-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('waitlist-email').value;
-  const stored = JSON.parse(localStorage.getItem('dilobien_waitlist') || '[]');
-  stored.push({ email, date: new Date().toISOString() });
-  localStorage.setItem('dilobien_waitlist', JSON.stringify(stored));
-  document.getElementById('waitlist-msg').style.display = 'block';
+  const msgEl = document.getElementById('waitlist-msg');
+  let savedToSupabase = false;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(SB.url + '/rest/v1/waitlist_signups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SB.anonKey, Authorization: 'Bearer ' + SB.anonKey },
+      body: JSON.stringify({ email: email, source_variant: CTA_VARIANT }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    savedToSupabase = res.ok;
+  } catch (err) {
+    savedToSupabase = false;
+  }
+  if (!savedToSupabase) {
+    const stored = JSON.parse(localStorage.getItem('dilobien_waitlist') || '[]');
+    stored.push({ email, date: new Date().toISOString() });
+    localStorage.setItem('dilobien_waitlist', JSON.stringify(stored));
+  }
+  logMarketingSignal('homepage_cta', CTA_VARIANT, 'conversion');
+  msgEl.textContent = savedToSupabase
+    ? "Done! We'll let you know as soon as it's available."
+    : "Saved on this device (offline) — we'll let you know as soon as it's available.";
+  msgEl.style.display = 'block';
   document.getElementById('waitlist-form').reset();
 });
 

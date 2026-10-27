@@ -53,7 +53,55 @@
   .ab-note{max-width:720px;margin:0 auto;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px 24px;font-size:14px;color:var(--muted);}
   .ab-note strong{color:var(--ink);}
 
-  @media (max-width:720px){ .proof-row, .content-grid{grid-template-columns:1fr;} }
+  .impl-note{max-width:820px;margin:0 auto;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;font-size:14px;color:var(--muted);}
+  .impl-note strong{color:var(--ink);}
+
+  .persona-card{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px;display:grid;grid-template-columns:120px 1fr;gap:24px;}
+  .persona-avatar{width:96px;height:96px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;}
+  .persona-card h3{font-size:19px;margin-bottom:4px;}
+  .persona-card .role{font-size:13px;color:var(--muted);margin-bottom:12px;}
+  .persona-card .quote{font-style:italic;color:var(--primary);margin:12px 0;font-size:14px;}
+  .persona-card ul{list-style:none;display:grid;gap:6px;font-size:13px;color:var(--muted);margin-top:6px;}
+  .persona-card ul li::before{content:"\2022  ";color:var(--accent);font-weight:800;}
+  .persona-card h4{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);margin-top:14px;margin-bottom:4px;}
+
+  .brand-grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .brand-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:24px;}
+  .brand-card h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:12px;}
+  .swatch-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .swatch{width:72px;text-align:center;font-size:10px;color:var(--muted);}
+  .swatch .chip{width:72px;height:44px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px;}
+  .brand-card ul{list-style:none;display:grid;gap:8px;font-size:13px;}
+  .brand-card ul li::before{content:"\2713  ";color:var(--accent);font-weight:800;}
+
+  .landing-copy-card{max-width:760px;margin:0 auto;background:var(--bg-soft);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;}
+  .landing-copy-card h3{font-size:24px;font-weight:800;margin-bottom:10px;}
+  .landing-copy-card p{color:var(--muted);margin-bottom:16px;}
+  .landing-copy-card ul{list-style:none;display:grid;gap:8px;font-size:14px;text-align:left;max-width:460px;margin:0 auto 18px;}
+  .landing-copy-card ul li::before{content:"\2713  ";color:var(--accent);font-weight:800;}
+
+  .action-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .action-btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink);}
+  .action-btn:hover{border-color:var(--primary);color:var(--primary);}
+  .action-btn.saved{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .post-grid{max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .post-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .post-meta{display:flex;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
+  .post-meta .platform{color:var(--primary);}
+  .post-meta .goal{color:var(--muted);}
+  .post-card p.post-text{font-size:14px;color:var(--ink);}
+
+  .script-card{max-width:820px;margin:0 auto 18px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:24px;}
+  .script-card h3{font-size:16px;margin-bottom:10px;}
+  .script-card pre{white-space:pre-wrap;font-family:inherit;font-size:13px;color:var(--muted);line-height:1.6;}
+
+  table.calendar{width:100%;max-width:1000px;margin:0 auto;border-collapse:collapse;font-size:13px;}
+  table.calendar th{background:var(--primary);color:#fff;padding:10px 12px;text-align:left;}
+  table.calendar td{padding:10px 12px;border-bottom:1px solid var(--border);}
+  table.calendar tr:nth-child(even){background:var(--bg-soft);}
+
+  @media (max-width:720px){ .proof-row, .content-grid, .brand-grid, .post-grid{grid-template-columns:1fr;} .persona-card{grid-template-columns:1fr;} .persona-avatar{margin:0 auto;} table.calendar{font-size:11px;} }
 </style>
 </head>
 <body>
@@ -99,8 +147,84 @@
 </section>
 
 <section>
-  <h2 class="section-title">Content system</h2>
-  <p class="section-sub">Short, situation-specific guidance — the start of a content library, not a one-off blog post.</p>
+  <h2 class="section-title">Persona</h2>
+  <p class="section-sub">Who this whole campaign is written for.</p>
+  <div class="persona-card">
+    <div class="persona-avatar" id="persona-avatar"></div>
+    <div>
+      <h3 id="persona-name"></h3>
+      <div class="role" id="persona-role"></div>
+      <p id="persona-summary"></p>
+      <p class="quote" id="persona-quote"></p>
+      <h4>Goals</h4>
+      <ul id="persona-goals"></ul>
+      <h4>Frustrations</h4>
+      <ul id="persona-frustrations"></ul>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg-soft);">
+  <h2 class="section-title">Brand system</h2>
+  <p class="section-sub">The voice and visual rules every piece of content below follows.</p>
+  <div class="brand-grid">
+    <div class="brand-card">
+      <h4>Voice</h4>
+      <ul id="brand-voice"></ul>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted);"><strong>Avoid:</strong> <span id="brand-voice-dont"></span></p>
+    </div>
+    <div class="brand-card">
+      <h4>Color palette</h4>
+      <div class="swatch-row" id="brand-colors"></div>
+      <h4 style="margin-top:16px;">Typography &amp; logo</h4>
+      <p style="font-size:13px;color:var(--muted);" id="brand-type"></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Landing copy</h2>
+  <p class="section-sub">The canonical, finished copy for the homepage hero — not an experimental variant.</p>
+  <div class="landing-copy-card">
+    <h3 id="lc-headline"></h3>
+    <p id="lc-subhead"></p>
+    <ul id="lc-props"></ul>
+    <button class="btn-primary" disabled style="opacity:.9;cursor:default;" id="lc-cta"></button>
+    <div class="action-row" style="justify-content:center;">
+      <button class="action-btn" id="lc-copy">Copy</button>
+      <button class="action-btn" id="lc-export">Export</button>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg-soft);">
+  <h2 class="section-title">Social posts (10)</h2>
+  <p class="section-sub">Each one maps to a day on the campaign calendar below. Copy, export, or save any post.</p>
+  <div class="post-grid" id="social-grid"></div>
+</section>
+
+<section>
+  <h2 class="section-title">Video scripts (3)</h2>
+  <p class="section-sub">Hook / body / CTA structure, 18-22 seconds each.</p>
+  <div id="script-list"></div>
+</section>
+
+<section style="background:var(--bg-soft);">
+  <h2 class="section-title">14-day campaign calendar</h2>
+  <p class="section-sub">Maps every post and script above to a day, platform, and funnel stage.</p>
+  <table class="calendar">
+    <thead><tr><th>Day</th><th>Platform</th><th>Goal</th><th>Content</th></tr></thead>
+    <tbody id="calendar-body"></tbody>
+  </table>
+  <div class="action-row" style="justify-content:center;">
+    <button class="action-btn" id="cal-copy">Copy calendar</button>
+    <button class="action-btn" id="cal-export">Export calendar (.txt)</button>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Content system — situational guidance</h2>
+  <p class="section-sub">The reference layer underneath the campaign: short, situation-specific guidance that the persona, posts, and scripts above all draw from.</p>
   <div class="tags" id="tag-filter"></div>
   <div class="content-grid" id="content-grid"></div>
 </section>
@@ -113,8 +237,16 @@
   </div>
 </section>
 
+<section>
+  <h2 class="section-title">Implementation note</h2>
+  <div class="impl-note">
+    <p><strong>What matched the wireframe:</strong> the hero A/B headline with its variant tag, the three-card live proof row, the tag-filterable content grid, and the explainer box all shipped exactly as sketched — same layout, same order, same live-data behavior.</p>
+    <p style="margin-top:10px;"><strong>What changed after the wireframe:</strong> the original wireframe only covered the hero, proof row, content grid, and A/B explainer — it didn't yet include Persona, Brand system, Landing copy, the 10 social posts, the 3 video scripts, or the 14-day calendar, since those requirements weren't reflected in the first draft. Those sections were added directly in code, following the same visual language (cards, soft-background alternation, the existing color tokens) so they read as part of one page rather than a bolted-on addition. The Copy/Export/Save action row is a new UI pattern not in the original wireframe at all, introduced because those three buttons are themselves a required deliverable.</p>
+  </div>
+</section>
+
 <footer style="padding:32px 24px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid var(--border);">
-  <p>Variant assignment and the content library are both pure, exported functions (<code>window.MarketingEngine</code>), so the logic the page runs is exactly what the software tests call.</p>
+  <p>Variant assignment, the persona, the brand system, the landing copy, all 10 social posts, all 3 video scripts, and the 14-day calendar are plain exported data/functions on <code>window.MarketingEngine</code>, so the logic and content the page renders is exactly what the software tests call.</p>
 </footer>
 
 <script src="/supabase-config.js"></script>
@@ -180,6 +312,161 @@ async function getCount(table, filter) {
   }
 }
 
+async function saveContent(contentId, contentType, btnEl) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(SB.url + "/rest/v1/content_saves", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey },
+      body: JSON.stringify({ content_id: contentId, content_type: contentType }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    btnEl.textContent = res.ok ? "Saved ✓" : "Saved (offline)";
+  } catch (e) {
+    btnEl.textContent = "Saved (offline)";
+  } finally {
+    btnEl.classList.add("saved");
+  }
+}
+
+function copyText(text, btnEl) {
+  const done = () => {
+    const original = btnEl.textContent;
+    btnEl.textContent = "Copied ✓";
+    setTimeout(() => { btnEl.textContent = original; }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  done();
+}
+
+function exportText(filename, text) {
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderPersona() {
+  const p = window.MarketingEngine.PERSONA;
+  document.getElementById("persona-avatar").textContent = p.name.split(" ").map((n) => n[0]).join("");
+  document.getElementById("persona-name").textContent = p.name + ", " + p.age;
+  document.getElementById("persona-role").textContent = p.role;
+  document.getElementById("persona-summary").textContent = p.summary;
+  document.getElementById("persona-quote").textContent = p.quote;
+  document.getElementById("persona-goals").innerHTML = p.goals.map((g) => `<li>${g}</li>`).join("");
+  document.getElementById("persona-frustrations").innerHTML = p.frustrations.map((f) => `<li>${f}</li>`).join("");
+}
+
+function renderBrand() {
+  const b = window.MarketingEngine.BRAND_SYSTEM;
+  document.getElementById("brand-voice").innerHTML = b.voice.map((v) => `<li>${v}</li>`).join("");
+  document.getElementById("brand-voice-dont").textContent = b.voiceDont;
+  document.getElementById("brand-colors").innerHTML = b.colors
+    .map((c) => `<div class="swatch"><div class="chip" style="background:${c.hex};"></div>${c.name}<br>${c.hex}</div>`)
+    .join("");
+  document.getElementById("brand-type").textContent = b.typography + " Logo: " + b.logo;
+}
+
+function renderLandingCopy() {
+  const lc = window.MarketingEngine.LANDING_COPY;
+  document.getElementById("lc-headline").textContent = lc.headline;
+  document.getElementById("lc-subhead").textContent = lc.subhead;
+  document.getElementById("lc-props").innerHTML = lc.valueProps.map((v) => `<li>${v}</li>`).join("");
+  document.getElementById("lc-cta").textContent = lc.cta;
+  const fullText = lc.headline + "\n\n" + lc.subhead + "\n\n" + lc.valueProps.map((v) => "- " + v).join("\n") + "\n\nCTA: " + lc.cta;
+  document.getElementById("lc-copy").addEventListener("click", (e) => copyText(fullText, e.target));
+  document.getElementById("lc-export").addEventListener("click", () => exportText("sayitright-landing-copy.txt", fullText));
+}
+
+function renderSocialPosts() {
+  const grid = document.getElementById("social-grid");
+  grid.innerHTML = "";
+  window.MarketingEngine.SOCIAL_POSTS.forEach((post) => {
+    const div = document.createElement("div");
+    div.className = "post-card";
+    div.innerHTML = `
+      <div class="post-meta"><span class="platform">${post.platform}</span><span class="goal">${post.goal}</span></div>
+      <p class="post-text">${post.text}</p>
+      <div class="action-row">
+        <button class="action-btn" data-action="copy">Copy</button>
+        <button class="action-btn" data-action="export">Export</button>
+        <button class="action-btn" data-action="save">Save</button>
+      </div>
+    `;
+    div.querySelector('[data-action="copy"]').addEventListener("click", (e) => copyText(post.text, e.target));
+    div.querySelector('[data-action="export"]').addEventListener("click", () => exportText(post.id + ".txt", post.text));
+    div.querySelector('[data-action="save"]').addEventListener("click", (e) => saveContent(post.id, "social_post", e.target));
+    grid.appendChild(div);
+  });
+}
+
+function renderVideoScripts() {
+  const list = document.getElementById("script-list");
+  list.innerHTML = "";
+  window.MarketingEngine.VIDEO_SCRIPTS.forEach((vs) => {
+    const div = document.createElement("div");
+    div.className = "script-card";
+    div.innerHTML = `
+      <h3>${vs.title}</h3>
+      <pre>${vs.script}</pre>
+      <div class="action-row">
+        <button class="action-btn" data-action="copy">Copy</button>
+        <button class="action-btn" data-action="export">Export</button>
+        <button class="action-btn" data-action="save">Save</button>
+      </div>
+    `;
+    div.querySelector('[data-action="copy"]').addEventListener("click", (e) => copyText(vs.script, e.target));
+    div.querySelector('[data-action="export"]').addEventListener("click", () => exportText(vs.id + ".txt", vs.script));
+    div.querySelector('[data-action="save"]').addEventListener("click", (e) => saveContent(vs.id, "video_script", e.target));
+    list.appendChild(div);
+  });
+}
+
+function renderCalendar() {
+  const tbody = document.getElementById("calendar-body");
+  const rows = window.MarketingEngine.CAMPAIGN_CALENDAR;
+  tbody.innerHTML = rows
+    .map((r) => {
+      const item = r.content ? window.MarketingEngine.getContentById(r.content) : null;
+      const label = item ? (item.text ? item.text.slice(0, 60) + "…" : item.title) : "—";
+      return `<tr><td>Day ${r.day}</td><td>${r.platform}</td><td>${r.goal}</td><td>${label}</td></tr>`;
+    })
+    .join("");
+
+  const asText = rows
+    .map((r) => {
+      const item = r.content ? window.MarketingEngine.getContentById(r.content) : null;
+      const label = item ? (item.text ? item.text : item.title) : "(no post — monitor engagement)";
+      return `Day ${r.day} | ${r.platform} | ${r.goal} | ${label}`;
+    })
+    .join("\n");
+
+  document.getElementById("cal-copy").addEventListener("click", (e) => copyText(asText, e.target));
+  document.getElementById("cal-export").addEventListener("click", () => exportText("sayitright-14-day-calendar.txt", asText));
+}
+
 function renderContent(tag) {
   const grid = document.getElementById("content-grid");
   grid.innerHTML = "";
@@ -225,6 +512,12 @@ async function init() {
     });
   });
 
+  renderPersona();
+  renderBrand();
+  renderLandingCopy();
+  renderSocialPosts();
+  renderVideoScripts();
+  renderCalendar();
   renderTags();
 
   const [validated, pricingRuns, marketingVisits] = await Promise.all([

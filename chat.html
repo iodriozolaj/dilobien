@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SayItRight — Chat</title>
+<meta name="description" content="A guided assistant that writes your hard-conversation message with you, step by step." />
+<style>
+  :root{
+    --primary:#2563eb; --accent:#0ea5e9; --ink:#0f172a; --muted:#475569;
+    --bg:#ffffff; --bg-soft:#f8fafc; --border:#e2e8f0; --bad:#dc2626; --good:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg-soft);line-height:1.5;}
+  a{color:var(--primary);text-decoration:none;}
+  header.nav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:#fff;flex-wrap:wrap;gap:10px;}
+  .nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;}
+  .nav .links{display:flex;gap:16px;align-items:center;font-size:14px;font-weight:600;flex-wrap:wrap;}
+  .wrap{max-width:720px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:26px;font-weight:800;margin-bottom:6px;}
+  .sub{color:var(--muted);margin-bottom:20px;font-size:14px;}
+
+  .guardrail-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--muted);margin-bottom:20px;}
+  .guardrail-note strong{color:var(--ink);}
+
+  .chat-window{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:320px;max-height:60vh;overflow-y:auto;}
+  .msg{max-width:82%;padding:12px 16px;border-radius:14px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;}
+  .msg.bot{background:var(--bg-soft);align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.user{background:var(--primary);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+  .msg.blocked{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.result{background:#f0fdf4;border:1px solid #bbf7d0;align-self:flex-start;border-bottom-left-radius:4px;font-weight:600;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .chip{background:#fff;border:1px solid var(--border);border-radius:999px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .chip:hover{border-color:var(--primary);color:var(--primary);}
+
+  .feedback-row{display:flex;gap:8px;margin-top:4px;align-self:flex-start;}
+  .fb-btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;}
+  .fb-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .composer{display:flex;gap:8px;margin-top:16px;}
+  .composer input{flex:1;padding:13px 16px;border-radius:10px;border:1px solid var(--border);font-size:14px;}
+  .composer button{background:var(--primary);color:#fff;border:none;border-radius:10px;padding:0 20px;font-size:14px;font-weight:700;cursor:pointer;}
+  .composer button:disabled{opacity:.5;cursor:not-allowed;}
+  .char-count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px;}
+
+  .actions-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .action-link{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);}
+  .action-link:hover{border-color:var(--primary);color:var(--primary);}
+
+  .skip-row{margin-top:8px;}
+  .skip-row button{background:none;border:none;color:var(--muted);font-size:12.5px;cursor:pointer;text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand"><span>💬</span><span>SayItRight</span></div>
+  <div class="links">
+    <a href="/core">Generator</a>
+    <a href="/research">Research</a>
+    <a href="/product">Product</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/marketing">Marketing</a>
+    <a href="/">&larr; Home</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Chat with the guided assistant</h1>
+  <p class="sub">Answer a couple of quick questions and get a ready-to-send message — no account needed.</p>
+
+  <div class="guardrail-note">
+    <strong>This is a guided, rule-based assistant</strong> — not a free-form AI chat. It only writes messages for hard conversations, it won't engage with unsafe requests, and if you ask for something outside that scope it'll say so and redirect you.
+  </div>
+
+  <div class="chat-window" id="chat-window"></div>
+
+  <div id="input-area"></div>
+</div>
+
+<script src="/supabase-config.js"></script>
+<script src="/core-engine.js"></script>
+<script src="/chat-engine.js"></script>
+<script>
+const SB = window.SUPABASE_CONFIG;
+const chatWindow = document.getElementById("chat-window");
+const inputArea = document.getElementById("input-area");
+
+let state = {
+  step: "scenario",
+  scenarioKey: null,
+  toneKey: null,
+  context: "",
+  lastSentAt: null,
+};
+
+const MIN_GAP_MS = 1500;
+const MAX_LEN = 240;
+
+function addBotMessage(text) {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.textContent = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const div = document.createElement("div");
+  div.className = "msg user";
+  div.textContent = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function addBlockedMessage(text) {
+  const div = document.createElement("div");
+  div.className = "msg blocked";
+  div.textContent = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+async function logGuardrailEvent(category) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    await fetch(SB.url + "/rest/v1/chat_guardrail_events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey },
+      body: JSON.stringify({ category }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+  } catch (e) {
+    // offline — guardrail still worked client-side, just not logged
+  }
+}
+
+async function logFeedback(scenarioKey, toneKey, rating, btnRow) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(SB.url + "/rest/v1/chat_feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB.anonKey, Authorization: "Bearer " + SB.anonKey },
+      body: JSON.stringify({ scenario_key: scenarioKey, tone_key: toneKey, rating }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+function renderScenarioStep() {
+  inputArea.innerHTML = "";
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  const scenarios = window.SayItRightCore.SCENARIOS;
+  Object.keys(scenarios).forEach((key) => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = scenarios[key].label;
+    chip.addEventListener("click", () => {
+      addUserMessage(scenarios[key].label);
+      state.scenarioKey = key;
+      state.step = window.ChatEngine.advanceStep("scenario");
+      addBotMessage("Got it. What tone do you want?");
+      renderToneStep();
+    });
+    chips.appendChild(chip);
+  });
+  const customChip = document.createElement("span");
+  customChip.className = "chip";
+  customChip.textContent = "Something else (type it)";
+  customChip.addEventListener("click", () => renderCustomScenarioInput());
+  chips.appendChild(customChip);
+  inputArea.appendChild(chips);
+}
+
+function renderCustomScenarioInput() {
+  inputArea.innerHTML = "";
+  const composer = document.createElement("div");
+  composer.className = "composer";
+  const input = document.createElement("input");
+  input.placeholder = "Describe the situation...";
+  input.maxLength = MAX_LEN + 20;
+  const btn = document.createElement("button");
+  btn.textContent = "Send";
+  composer.appendChild(input);
+  composer.appendChild(btn);
+  inputArea.appendChild(composer);
+  const count = document.createElement("div");
+  count.className = "char-count";
+  inputArea.appendChild(count);
+  input.addEventListener("input", () => {
+    count.textContent = input.value.length + " / " + MAX_LEN;
+  });
+
+  btn.addEventListener("click", () => handleCustomScenarioSubmit(input.value, btn));
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") handleCustomScenarioSubmit(input.value, btn); });
+}
+
+async function handleCustomScenarioSubmit(text, btn) {
+  const now = Date.now();
+  if (!window.ChatEngine.checkRateLimit(state.lastSentAt, now, MIN_GAP_MS)) {
+    addBlockedMessage("Slow down a little — one message at a time.");
+    logGuardrailEvent("rate_limit");
+    return;
+  }
+  if (!window.ChatEngine.checkLength(text, MAX_LEN)) {
+    addBlockedMessage("That's either empty or too long (max " + MAX_LEN + " characters). Try a shorter description.");
+    logGuardrailEvent("length");
+    return;
+  }
+  const guard = window.ChatEngine.checkGuardrail(text);
+  state.lastSentAt = now;
+  addUserMessage(text);
+  if (guard.blocked) {
+    addBlockedMessage(guard.reason);
+    logGuardrailEvent(guard.category);
+    renderCustomScenarioInput();
+    return;
+  }
+  state.scenarioKey = "custom";
+  state.customText = text;
+  state.step = window.ChatEngine.advanceStep("scenario");
+  addBotMessage("Got it. What tone do you want?");
+  renderToneStep();
+}
+
+function renderToneStep() {
+  inputArea.innerHTML = "";
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  const tones = window.SayItRightCore.TONES;
+  Object.keys(tones).forEach((key) => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = tones[key].label;
+    chip.addEventListener("click", () => {
+      addUserMessage(tones[key].label);
+      state.toneKey = key;
+      state.step = window.ChatEngine.advanceStep("tone");
+      addBotMessage("One more thing — any extra detail to include? (optional)");
+      renderContextStep();
+    });
+    chips.appendChild(chip);
+  });
+  inputArea.appendChild(chips);
+}
+
+function renderContextStep() {
+  inputArea.innerHTML = "";
+  const composer = document.createElement("div");
+  composer.className = "composer";
+  const input = document.createElement("input");
+  input.placeholder = "e.g. the dinner on Friday (optional)";
+  input.maxLength = MAX_LEN + 20;
+  const btn = document.createElement("button");
+  btn.textContent = "Generate";
+  composer.appendChild(input);
+  composer.appendChild(btn);
+  inputArea.appendChild(composer);
+
+  const skipRow = document.createElement("div");
+  skipRow.className = "skip-row";
+  const skipBtn = document.createElement("button");
+  skipBtn.textContent = "Skip this";
+  skipBtn.addEventListener("click", () => submitContext(""));
+  skipRow.appendChild(skipBtn);
+  inputArea.appendChild(skipRow);
+
+  btn.addEventListener("click", () => submitContext(input.value));
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") submitContext(input.value); });
+}
+
+function submitContext(text) {
+  const now = Date.now();
+  if (!window.ChatEngine.checkRateLimit(state.lastSentAt, now, MIN_GAP_MS)) {
+    addBlockedMessage("Slow down a little — one message at a time.");
+    logGuardrailEvent("rate_limit");
+    return;
+  }
+  state.lastSentAt = now;
+  if (text && text.trim()) {
+    if (!window.ChatEngine.checkLength(text, MAX_LEN)) {
+      addBlockedMessage("That detail is too long (max " + MAX_LEN + " characters) — try trimming it.");
+      logGuardrailEvent("length");
+      return;
+    }
+    const guard = window.ChatEngine.checkGuardrail(text);
+    addUserMessage(text);
+    if (guard.blocked) {
+      addBlockedMessage(guard.reason);
+      logGuardrailEvent(guard.category);
+      renderContextStep();
+      return;
+    }
+    state.context = text.trim();
+  } else {
+    addUserMessage("(skipped)");
+  }
+  state.step = window.ChatEngine.advanceStep("context");
+  renderResult();
+}
+
+function renderResult() {
+  const result = window.SayItRightCore.generateMessage({
+    scenarioKey: state.scenarioKey,
+    customText: state.customText,
+    context: state.context,
+    toneKey: state.toneKey,
+  });
+
+  addBotMessage("Here's a message you could send:");
+  const div = document.createElement("div");
+  div.className = "msg result";
+  div.textContent = result.message;
+  chatWindow.appendChild(div);
+
+  const fbRow = document.createElement("div");
+  fbRow.className = "feedback-row";
+  const up = document.createElement("button");
+  up.className = "fb-btn";
+  up.textContent = "👍 Helpful";
+  const down = document.createElement("button");
+  down.className = "fb-btn";
+  down.textContent = "👎 Not quite";
+  fbRow.appendChild(up);
+  fbRow.appendChild(down);
+  chatWindow.appendChild(fbRow);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  up.addEventListener("click", async () => {
+    up.classList.add("active");
+    down.disabled = true;
+    const ok = await logFeedback(state.scenarioKey, state.toneKey, "up");
+    if (!ok) up.textContent = "👍 Helpful (saved offline)";
+  });
+  down.addEventListener("click", async () => {
+    down.classList.add("active");
+    up.disabled = true;
+    const ok = await logFeedback(state.scenarioKey, state.toneKey, "down");
+    if (!ok) down.textContent = "👎 Not quite (saved offline)";
+  });
+
+  inputArea.innerHTML = "";
+  const actions = document.createElement("div");
+  actions.className = "actions-row";
+  const regen = document.createElement("button");
+  regen.className = "action-link";
+  regen.textContent = "Try again (same situation)";
+  regen.addEventListener("click", () => {
+    addUserMessage("Try again");
+    renderResult();
+  });
+  const restart = document.createElement("button");
+  restart.className = "action-link";
+  restart.textContent = "Start over";
+  restart.addEventListener("click", () => startConversation(true));
+  actions.appendChild(regen);
+  actions.appendChild(restart);
+  inputArea.appendChild(actions);
+}
+
+function startConversation(isRestart) {
+  chatWindow.innerHTML = "";
+  state = { step: "scenario", scenarioKey: null, toneKey: null, context: "", lastSentAt: null };
+  addBotMessage(isRestart ? "Let's start over. What's the situation?" : "Hi! I'm the SayItRight guided assistant. What's the situation you need help with?");
+  renderScenarioStep();
+}
+
+startConversation(false);
+</script>
+
+</body>
+</html>
